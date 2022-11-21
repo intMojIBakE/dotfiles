@@ -1,3 +1,18 @@
+local getTime = tonumber(os.date("%H"))
+if(getTime <= 3)
+then
+    print("Good night, Shinohara")
+elseif(getTime <= 12)
+then
+    print("Good morning, Shinohara")
+elseif(getTime <= 17)
+then
+    print("Good afternoon, Shinohara")
+elseif(getTime <= 23)
+then
+    print("Good evening, Shinohara")
+end
+
 vim.g.loaded_gzip = 1
 vim.g.loaded_tar = 1
 vim.g.loaded_tarPlugin = 1
@@ -17,15 +32,13 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.loaded_netrwSettings = 1
 vim.g.loaded_netrwFileHandlers = 1
 
-pcall(require, "impatient")
-
 vim.g.os = vim.loop.os_uname().sysname
 vim.g.open_command = "xdg-open"
 vim.g.mapleader = " "
 
-require("neovide")
-require("internal.packer_commands")
-require("plugins")
-require("options")
-require("autocmd")
-require("keymap")
+vim.opt.number = true
+
+vim.scriptencoding = 'utf-8'
+vim.opt.encoding = 'utf-8'
+vim.opt.fileencoding = 'utf-8'
+
