@@ -65,6 +65,7 @@ require("packer").startup(function(use)
   })
   use({
     "kyazdani42/nvim-tree.lua",
+    cmd = "NvimTree*",
     requires = {
       "kyazdani42/nvim-web-devicons", -- optional, for file icon
     },
@@ -104,6 +105,12 @@ require("packer").startup(function(use)
       require("colorful-winsep").setup()
     end,
   })
+  use({
+    "kevinhwang91/nvim-hlslens",
+    config = function()
+      require("plugins.hlslens")
+    end,
+  })
 
   use({
     "lukas-reineke/indent-blankline.nvim",
@@ -137,16 +144,17 @@ require("packer").startup(function(use)
   })
   use({
     "numToStr/Comment.nvim",
+    keys = {
+      { "n", "gc" },
+      { "n", "gb" },
+      { "n", "gc" },
+      { "n", "gc" },
+      { "n", "gc" },
+      { "v", "gb" },
+      { "v", "gc" },
+    },
     config = function()
       require("plugins.comment")
-    end,
-  })
-  use({
-    "phaazon/hop.nvim",
-    branch = "v2",
-    event = "BufReadPost",
-    config = function()
-      require("plugins.hop")
     end,
   })
   use({
@@ -180,34 +188,64 @@ require("packer").startup(function(use)
     end,
   })
   use({
-    "junegunn/vim-easy-align",
+    "gbprod/yanky.nvim",
+    event = "VimEnter",
+    config = function()
+      require("plugins.yanky")
+    end,
   })
   use({
-    "gbprod/yanky.nvim",
+    "abecodes/tabout.nvim",
+    wants = { "nvim-treesitter" },
+    after = { "nvim-cmp" },
     config = function()
-      require("yanky").setup({})
-      vim.keymap.set({ "n", "x" }, "p", "<Plug>(YankyPutAfter)")
-      vim.keymap.set({ "n", "x" }, "P", "<Plug>(YankyPutBefore)")
-      vim.keymap.set({ "n", "x" }, "gp", "<Plug>(YankyGPutAfter)")
-      vim.keymap.set({ "n", "x" }, "gP", "<Plug>(YankyGPutBefore)")
-      vim.keymap.set({ "n", "x" }, "y", "<Plug>(YankyYank)")
+      require("tabout").setup({})
+    end,
+  })
+  use({ "tpope/vim-repeat" })
+  use({
+    "ggandor/leap.nvim",
+    config = function()
+      require("leap").add_default_mappings()
+    end,
+  })
+  use({
+    "ggandor/flit.nvim",
+    config = function()
+      require("flit").setup()
+    end,
+  })
+  use({
+    "nacro90/numb.nvim",
+    config = function()
+      require("numb").setup()
     end,
   })
 
   use({
     "neovim/nvim-lspconfig",
+    event = "BufReadPre",
     config = function()
       require("plugins.native_lsp")
     end,
   })
-  use({ "williamboman/mason.nvim" })
+  use({
+    "williamboman/mason.nvim",
+    config = function()
+      require("mason").setup()
+    end,
+  })
   use({
     "williamboman/mason-lspconfig.nvim",
     requires = { "neovim/nvim-lspconfig" },
+    config = function()
+      require("mason-lspconfig").setup()
+    end,
   })
   use({
     "glepnir/lspsaga.nvim",
     branch = "main",
+    after = "nvim-lspconfig",
     config = function()
       require("plugins.lspsaga")
     end,
@@ -220,6 +258,7 @@ require("packer").startup(function(use)
   })
   use({
     "j-hui/fidget.nvim",
+    after = "nvim-lspconfig",
     config = function()
       require("fidget").setup({
         sources = { ["null-ls"] = { ignore = true } },
@@ -228,12 +267,26 @@ require("packer").startup(function(use)
   })
   use({ "b0o/schemastore.nvim" })
   use({ "p00f/clangd_extensions.nvim" })
-  use({ "folke/neodev.nvim" })
   use({
     "jose-elias-alvarez/null-ls.nvim",
     requires = { "nvim-lua/plenary.nvim" },
+    event = "BufReadPre",
     config = function()
       require("plugins.null_ls")
+    end,
+  })
+  use({
+    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    config = function()
+      require("lsp_lines").setup()
+      vim.api.nvim_create_user_command(
+        "LspLinesToggle",
+        "lua require('lsp_lines').toggle()",
+        {}
+      )
+      vim.diagnostic.config({
+        virtual_text = false,
+      })
     end,
   })
 
@@ -241,6 +294,7 @@ require("packer").startup(function(use)
     "hrsh7th/nvim-cmp",
     event = { "InsertEnter", "CmdlineEnter" },
     requires = {
+      { "lukas-reineke/cmp-under-comparator" },
       { "hrsh7th/cmp-nvim-lsp" },
       { "hrsh7th/cmp-buffer" },
       { "hrsh7th/cmp-path" },
@@ -272,6 +326,7 @@ require("packer").startup(function(use)
 
   use({
     "nvim-telescope/telescope.nvim",
+    cmd = { "Telescope", "Cheatsheet" },
     requires = {
       { "nvim-lua/plenary.nvim" },
       { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
@@ -285,25 +340,32 @@ require("packer").startup(function(use)
       require("plugins.telescope")
     end,
   })
+  use({
+    "sudormrfbin/cheatsheet.nvim",
+    cmd = { "Cheatsheet" },
+    requires = {
+      { "nvim-telescope/telescope.nvim" },
+      { "nvim-lua/popup.nvim" },
+      { "nvim-lua/plenary.nvim" },
+    },
+  })
 
   use({
     "nvim-treesitter/nvim-treesitter",
     run = ":TSUpdate",
+    event = "BufReadPost",
+    module = "nvim-treesitter",
     config = function()
       require("plugins.treesitter")
     end,
   })
-  use({
-    "nvim-treesitter/nvim-treesitter-textobjects",
-  })
-  use({
-    "JoosepAlviste/nvim-ts-context-commentstring",
-  })
-  use({
-    "nvim-treesitter/nvim-treesitter-context",
-  })
+  use({ "nvim-treesitter/nvim-treesitter-textobjects" })
+  use({ "JoosepAlviste/nvim-ts-context-commentstring" })
+  use({ "nvim-treesitter/nvim-treesitter-context" })
+  use({ "mrjones2014/nvim-ts-rainbow" })
   use({
     "windwp/nvim-ts-autotag",
+    requires = { "nvim-treesitter/nvim-treesitter" },
   })
   use({
     "kylechui/nvim-surround",
@@ -320,7 +382,16 @@ require("packer").startup(function(use)
       require("plugins.sniprun")
     end,
   })
-  use({ "skywind3000/asyncrun.vim" })
+  use({
+    "skywind3000/asyncrun.vim",
+    cmd = { "AsyncRun", "AsyncStop", "AsyncReset" },
+  })
+  use({
+    "stevearc/overseer.nvim",
+    config = function()
+      require("plugins.overseer")
+    end,
+  })
   use({
     "akinsho/toggleterm.nvim",
     event = "UIEnter",
@@ -355,6 +426,13 @@ require("packer").startup(function(use)
     run = "cd app && pnpm install",
   })
   use({
+    "ellisonleao/glow.nvim",
+    cmd = "Glow",
+    config = function()
+      require("glow").setup()
+    end,
+  })
+  use({
     "rcarriga/nvim-notify",
     config = function()
       require("plugins.notify")
@@ -363,20 +441,16 @@ require("packer").startup(function(use)
   use({
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPost", "BufNewFile" },
-    tag = "release",
     config = function()
       require("gitsigns").setup()
     end,
   })
-  use({ "sindrets/diffview.nvim", cmd = "Diffview*" })
   use({
     "TimUntersberger/neogit",
-    cmd = "Neogit",
     requires = "nvim-lua/plenary.nvim",
-    config = function()
-      require("neogit").setup()
-    end,
+    cmd = "Neogit",
   })
+  use({ "sindrets/diffview.nvim", cmd = "Diffview*" })
   use({ "sbdchd/neoformat", cmd = "Neoformat" })
   use({ "gpanders/editorconfig.nvim" })
   use({
@@ -408,19 +482,6 @@ require("packer").startup(function(use)
       })
     end,
   })
-  -- use({
-  --   "nvim-neotest/neotest",
-  --   after = "nvim-treesitter",
-  --   requires = {
-  --     "nvim-lua/plenary.nvim",
-  --     "nvim-treesitter/nvim-treesitter",
-  --     "antoinemadec/FixCursorHold.nvim",
-  --     "haydenmeade/neotest-jest",
-  --   },
-  --   config = function()
-  --     require("plugins.neotest")
-  --   end,
-  -- })
   use({
     "folke/todo-comments.nvim",
     after = "nvim-treesitter",
@@ -446,17 +507,36 @@ require("packer").startup(function(use)
 
   use({
     "mfussenegger/nvim-dap",
+    cmd = {
+      "DapSetLogLevel",
+      "DapShowLog",
+      "DapContinue",
+      "DapToggleBreakpoint",
+      "DapToggleRepl",
+      "DapStepOver",
+      "DapStepInto",
+      "DapStepOut",
+      "DapTerminate",
+    },
+    opt = true,
+    module = "dap",
     config = function()
       require("plugins.dap")
     end,
   })
-  use({ "rcarriga/nvim-dap-ui", requires = { "mfussenegger/nvim-dap" } })
+  use({
+    "rcarriga/nvim-dap-ui",
+    requires = { "mfussenegger/nvim-dap" },
+    opt = true,
+    module = "dapui",
+  })
   use({
     "theHamsta/nvim-dap-virtual-text",
     requires = { "mfussenegger/nvim-dap" },
   })
 
   use({ "simrat39/rust-tools.nvim" })
+  use({ "nanotee/sqls.nvim" })
 
   use({ "nvim-lua/popup.nvim" })
 

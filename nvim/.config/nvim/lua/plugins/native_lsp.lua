@@ -1,17 +1,6 @@
 local wk = require("which-key")
 local lsp_format = require("lsp-format")
-
--- Mason
-require("mason").setup({
-  ui = {
-    icons = {
-      package_installed = "✓",
-      package_pending = "➜",
-      package_uninstalled = "✗",
-    },
-  },
-})
-require("mason-lspconfig").setup({})
+local util = require("lspconfig.util")
 
 local signs = {
   Error = " ",
@@ -29,7 +18,7 @@ vim.diagnostic.config({
   update_in_insert = true,
   underline = false,
   severity_sort = true,
-  virtual_text = true,
+  -- virtual_text = true,
 })
 
 -- Lspconfig
@@ -86,17 +75,41 @@ _G.lsp_global_attach = function(_, bufnr)
   vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 end
 
+local configs = require("lspconfig.configs")
+configs["unocss"] = {
+  default_config = {
+    cmd = { "unocss-language-server", "--stdio" },
+    filetypes = {
+      "html",
+      "javascriptreact",
+      "rescript",
+      "typescriptreact",
+      "vue",
+      "svelte",
+    },
+    on_new_config = function(new_config) end,
+    root_dir = function(fname)
+      return util.root_pattern("unocss.config.js", "unocss.config.ts")(fname)
+        or util.find_package_json_ancestor(fname)
+        or util.find_node_modules_ancestor(fname)
+        or util.find_git_ancestor(fname)
+    end,
+  },
+}
+
 local servers = {
   "pyright",
   "html",
   "eslint",
   "cssls",
+  "stylelint_lsp",
   "cmake",
   "bashls",
   "dockerls",
   "yamlls",
   "zls",
   "gopls",
+  "sumneko_lua",
 }
 
 for _, server in ipairs(servers) do
@@ -123,35 +136,6 @@ require("clangd_extensions").setup({
   },
 })
 
--- require("lspconfig").ccls.setup({
---   on_attach = function(client, bufnr)
---     global_attach(client, bufnr)
---     lsp_format.on_attach(client)
---   end,
---   capabilities = global_capabilities,
--- })
-
--- require("typescript").setup({
---   server = {
---     on_attach = lsp_global_attach,
---     capabilities = global_capabilities,
---   },
--- })
-
-require("neodev").setup({})
-
-lspconfig.sumneko_lua.setup({
-  on_attach = lsp_global_attach,
-  capabilities = global_capabilities,
-  settings = {
-    Lua = {
-      completion = {
-        callSnippet = "Replace",
-      },
-    },
-  },
-})
-
 lspconfig.jsonls.setup({
   on_attach = lsp_global_attach,
   capabilities = global_capabilities,
@@ -162,7 +146,6 @@ lspconfig.jsonls.setup({
   },
 })
 
-local util = require("lspconfig.util")
 local function get_typescript_server_path(root_dir)
   local global_ts =
     "/home/lnk/.local/share/pnpm/global/5/node_modules/typescript/lib"
@@ -191,8 +174,15 @@ require("lspconfig").volar.setup({
     "vue",
     "json",
   },
-  on_new_config = function(new_config, new_root_dir)
-    new_config.init_options.typescript.tsdk =
-      get_typescript_server_path(new_root_dir)
+  init_options = {
+    typescript = {
+      tsdk = "/usr/lib/node_modules/typescript/lib",
+    },
+  },
+})
+
+require("lspconfig").sqls.setup({
+  on_attach = function(client, bufnr)
+    require("sqls").on_attach(client, bufnr)
   end,
 })
